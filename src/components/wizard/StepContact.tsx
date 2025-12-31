@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 import { useAuditStore } from "@/store/audit-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,8 @@ function formatCLP(value: number): string {
 }
 
 export function StepContact() {
-  const { result, setContact, setStep } = useAuditStore();
+  const { result, setContact } = useAuditStore();
+  const router = useRouter();
 
   const {
     register,
@@ -41,7 +43,7 @@ export function StepContact() {
   const onSubmit = async (data: ContactForm) => {
     setContact(data.name, data.email);
     // Here you would typically send to backend/CRM
-    setStep("result");
+    router.push("/result");
   };
 
   const annualSavings = result?.annualSavings || 0;

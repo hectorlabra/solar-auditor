@@ -108,7 +108,10 @@ export function SavingsChart({
                 width={50}
               />
               <Tooltip
-                formatter={(value: number) => [formatMillions(value), ""]}
+                formatter={(value) => [
+                  typeof value === "number" ? formatMillions(value) : "",
+                  "",
+                ]}
                 labelStyle={{ color: "var(--foreground)" }}
                 contentStyle={{
                   backgroundColor: "var(--background)",
