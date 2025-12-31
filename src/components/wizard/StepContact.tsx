@@ -8,9 +8,8 @@ import { useAuditStore } from "@/store/audit-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { LockKeyhole, Sparkles } from "lucide-react";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Ingresa tu nombre"),
@@ -19,17 +18,8 @@ const contactSchema = z.object({
 
 type ContactForm = z.infer<typeof contactSchema>;
 
-// Format CLP
-function formatCLP(value: number): string {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 export function StepContact() {
-  const { result, setContact } = useAuditStore();
+  const { setContact } = useAuditStore();
   const router = useRouter();
 
   const {
@@ -42,101 +32,93 @@ export function StepContact() {
 
   const onSubmit = async (data: ContactForm) => {
     setContact(data.name, data.email);
-    // Here you would typically send to backend/CRM
     router.push("/result");
   };
 
-  const annualSavings = result?.annualSavings || 0;
-
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="flex flex-col items-center justify-center min-h-[60vh] px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="relative w-full min-h-[400px] flex flex-col items-center justify-center"
     >
-      {/* Success icon */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", duration: 0.5 }}
-        className="mb-4"
-      >
-        <Sparkles className="w-12 h-12 text-amber-400" />
-      </motion.div>
-
-      {/* Title */}
-      <h2 className="text-2xl md:text-3xl font-bold text-center mb-2">
-        ¡Tu análisis está listo!
-      </h2>
-
-      {/* Teaser */}
-      <Card className="p-4 mb-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-green-500" />
-          <span className="text-sm">
-            Detectamos un ahorro potencial de{" "}
-            <strong className="text-green-600">
-              {formatCLP(annualSavings)}/año
-            </strong>
-          </span>
+      {/* Blurred "Result Preview" Background (FOMO Effect) */}
+      <div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none select-none blur-sm grayscale-[30%]">
+        <div className="w-full h-32 mt-10 bg-gradient-to-t from-green-500/40 to-transparent rounded-t-full" />
+        <div className="grid grid-cols-2 gap-4 p-4 mt-4">
+          <div className="h-24 bg-muted/50 rounded-lg" />
+          <div className="h-24 bg-muted/50 rounded-lg" />
         </div>
-      </Card>
+      </div>
 
-      <p className="text-muted-foreground text-center mb-6">
-        Ingresa tus datos para ver el informe completo
-      </p>
-
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm space-y-4"
-      >
-        <div>
-          <Label htmlFor="name">Nombre</Label>
-          <Input
-            id="name"
-            placeholder="Tu nombre"
-            className="h-12"
-            {...register("name")}
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive mt-1">
-              {errors.name.message}
-            </p>
-          )}
+      <div className="relative z-10 w-full max-w-sm bg-background/80 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-primary/10 shadow-2xl">
+        <div className="flex justify-center mb-6">
+          <div className="bg-primary/10 p-4 rounded-full ring-2 ring-primary/20">
+            <LockKeyhole className="w-8 h-8 text-primary" />
+          </div>
         </div>
 
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="tu@email.com"
-            className="h-12"
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="text-sm text-destructive mt-1">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+        <h2 className="text-2xl font-bold text-center mb-2">
+          Análisis Terminado
+        </h2>
+        <p className="text-center text-muted-foreground mb-6 text-sm">
+          Hemos encontrado una oportunidad de ahorro significativa. Desbloquea
+          tu reporte completo ahora.
+        </p>
 
-        <Button
-          type="submit"
-          size="lg"
-          disabled={isSubmitting}
-          className="w-full h-14 text-lg font-semibold"
-        >
-          Ver Informe Completo
-        </Button>
-      </form>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label
+              htmlFor="name"
+              className="text-xs uppercase tracking-wide text-muted-foreground"
+            >
+              Nombre Completo
+            </Label>
+            <Input
+              id="name"
+              placeholder="Ej: Juan Pérez"
+              className="bg-background/50 border-primary/20 focus:border-primary/50 h-11"
+              {...register("name")}
+            />
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name.message}</p>
+            )}
+          </div>
 
-      {/* Privacy note */}
-      <p className="text-xs text-muted-foreground mt-4 text-center max-w-sm">
-        🔒 Tus datos están seguros. No compartimos tu información con terceros.
-      </p>
+          <div className="space-y-2">
+            <Label
+              htmlFor="email"
+              className="text-xs uppercase tracking-wide text-muted-foreground"
+            >
+              Correo Electrónico
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="nombre@empresa.com"
+              className="bg-background/50 border-primary/20 focus:border-primary/50 h-11"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSubmitting}
+            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg shadow-amber-500/20"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Ver Mi Ahorro
+          </Button>
+        </form>
+
+        <p className="text-[10px] text-center text-muted-foreground/50 mt-6">
+          Tus datos están protegidos bajo estándares internacionales de
+          privacidad.
+        </p>
+      </div>
     </motion.div>
   );
 }

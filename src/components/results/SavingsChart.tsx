@@ -29,55 +29,60 @@ export function SavingsChart({
   monthlyBill,
   annualSavings,
 }: SavingsChartProps) {
-  // Generate 20-year projection data
+  // Generate 20-year projection data with slightly more optimistic solar inflation protection
   const data = Array.from({ length: 21 }, (_, year) => {
-    // Assume 5% annual electricity price increase
-    const inflationFactor = Math.pow(1.05, year);
-    const yearlyBill = monthlyBill * 12 * inflationFactor;
+    // Grid prices often rise faster than general inflation
+    const inflationFactor = Math.pow(1.06, year); // 6% energy inflation
+    const yearlyBillGrid = monthlyBill * 12 * inflationFactor;
+
+    // Solar degradation is minimal (linear 0.5%)
+    const degradationFactor = Math.pow(0.995, year);
 
     // Cumulative costs
     const cumulativeGrid = Array.from(
       { length: year + 1 },
-      (_, y) => monthlyBill * 12 * Math.pow(1.05, y)
+      (_, y) => monthlyBill * 12 * Math.pow(1.06, y)
     ).reduce((a, b) => a + b, 0);
 
-    // Solar savings grow with inflation too (you're avoiding higher prices)
     const cumulativeSolar =
       year === 0
         ? 0
         : Array.from({ length: year }, (_, y) =>
             Math.max(
               0,
-              monthlyBill * 12 * Math.pow(1.05, y) -
-                annualSavings * Math.pow(1.02, y)
+              monthlyBill * 12 * Math.pow(1.06, y) -
+                annualSavings * Math.pow(1.06, y) * Math.pow(0.995, y) // Savings grow with energy price
             )
           ).reduce((a, b) => a + b, 0);
 
     return {
-      year: `Año ${year}`,
-      "Sin Solar": Math.round(cumulativeGrid),
+      year: year === 0 ? "Hoy" : `Año ${year}`,
+      "Costo Red": Math.round(cumulativeGrid),
       "Con Solar": Math.round(cumulativeSolar),
     };
   });
 
-  const twentyYearDiff = data[20]["Sin Solar"] - data[20]["Con Solar"];
+  const twentyYearDiff = data[20]["Costo Red"] - data[20]["Con Solar"];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
+      transition={{ delay: 0.4 }}
+      className="h-full"
     >
-      <Card className="p-4 md:p-6">
-        <h3 className="text-lg font-semibold mb-2">Proyección a 20 Años</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Ahorro acumulado estimado:{" "}
-          <span className="text-green-500 font-bold">
-            {formatMillions(twentyYearDiff)}
-          </span>
-        </p>
+      <Card className="p-6 glass-card border-none bg-card/50 h-full flex flex-col">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <span className="w-2 h-6 bg-primary rounded-full" />
+            Proyección Financiera (20 Años)
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 ml-4">
+            Comparativa acumulada: Red Eléctrica vs. Tu Sistema Solar
+          </p>
+        </div>
 
-        <div className="h-[250px] md:h-[300px]">
+        <div className="flex-1 w-full min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}
@@ -85,59 +90,92 @@ export function SavingsChart({
             >
               <defs>
                 <linearGradient id="colorGrid" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--destructive)"
+                    stopOpacity={0.2}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--destructive)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
                 <linearGradient id="colorSolar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                className="opacity-10"
+                stroke="currentColor"
+              />
               <XAxis
                 dataKey="year"
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                 tickLine={false}
+                axisLine={false}
                 interval={4}
               />
               <YAxis
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                 tickFormatter={formatMillions}
                 tickLine={false}
                 axisLine={false}
-                width={50}
+                width={40}
               />
               <Tooltip
                 formatter={(value) => [
                   typeof value === "number" ? formatMillions(value) : "",
                   "",
                 ]}
-                labelStyle={{ color: "var(--foreground)" }}
+                labelStyle={{ color: "var(--foreground)", fontWeight: "bold" }}
                 contentStyle={{
                   backgroundColor: "var(--background)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "8px",
+                  borderColor: "var(--border)",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)",
                 }}
+                itemStyle={{ padding: 0 }}
               />
-              <Legend />
+              <Legend iconType="circle" />
               <Area
                 type="monotone"
-                dataKey="Sin Solar"
-                stroke="#ef4444"
-                strokeWidth={2}
+                dataKey="Costo Red"
+                name="Sin Paneles (Gasto Red)"
+                stroke="var(--destructive)"
+                strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorGrid)"
               />
               <Area
                 type="monotone"
                 dataKey="Con Solar"
-                stroke="#22c55e"
-                strokeWidth={2}
+                name="Con Paneles (Gasto Residual)"
+                stroke="var(--primary)"
+                strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorSolar)"
               />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+
+        <div className="mt-4 p-3 bg-primary/10 rounded-xl border border-primary/10">
+          <p className="text-xs text-center font-medium text-primary">
+            🚀 El costo de la energía sube un 6% anual aprox. Solar Auditor
+            congela tu precio.
+          </p>
         </div>
       </Card>
     </motion.div>

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Sun } from "lucide-react";
+import { MapPin, Sun, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function StepLocation() {
@@ -27,68 +27,71 @@ export function StepLocation() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-[60vh] px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-col items-center justify-center text-center px-2"
     >
-      {/* Hero Icon */}
-      <motion.div
-        animate={{ rotate: [0, 10, -10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="mb-6"
-      >
-        <Sun className="w-16 h-16 text-amber-400" />
-      </motion.div>
-
-      {/* Title */}
-      <h1 className="text-2xl md:text-4xl font-bold text-center mb-2 text-foreground">
-        ¿Es rentable la energía solar
-      </h1>
-      <h2 className="text-2xl md:text-4xl font-bold text-center mb-8 text-primary">
-        en tu comuna?
-      </h2>
-
-      {/* Subtitle */}
-      <p className="text-muted-foreground text-center mb-8 max-w-md">
-        Descubre cuánto podrías ahorrar con paneles solares. Análisis gratuito
-        en menos de 2 minutos.
-      </p>
-
-      {/* Comuna Selector */}
-      <div className="w-full max-w-sm mb-6">
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-          <Select value={selected} onValueChange={setSelected}>
-            <SelectTrigger className="pl-10 h-14 text-lg">
-              <SelectValue placeholder="Selecciona tu comuna" />
-            </SelectTrigger>
-            <SelectContent>
-              {COMUNAS_LIST.map((comuna) => (
-                <SelectItem key={comuna.value} value={comuna.value}>
-                  {comuna.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Visual Map Context */}
+      <div className="relative w-32 h-32 mb-8">
+        <motion.div
+          className="absolute inset-0 bg-primary/10 rounded-full blur-xl"
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+        <div className="absolute inset-0 border-2 border-dashed border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative">
+            <Sun className="w-12 h-12 text-primary" />
+            <motion.div
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="absolute -right-2 -bottom-2 bg-background rounded-full p-1 shadow-lg"
+            >
+              <MapPin className="w-5 h-5 text-indigo-500" />
+            </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* CTA Button */}
-      <Button
-        onClick={handleNext}
-        disabled={!selected}
-        size="lg"
-        className="w-full max-w-sm h-14 text-lg font-semibold"
-      >
-        Calcular mi Ahorro
-      </Button>
-
-      {/* Trust badge */}
-      <p className="text-xs text-muted-foreground mt-6 text-center">
-        ✓ Sin compromiso &nbsp;•&nbsp; ✓ 100% Gratuito &nbsp;•&nbsp; ✓
-        Resultados inmediatos
+      <h2 className="text-3xl font-bold mb-3">¿Dónde está tu propiedad?</h2>
+      <p className="text-muted-foreground mb-8 max-w-xs">
+        La radiación solar varía según tu comuna. Usamos datos satelitales para
+        calcular tu potencial.
       </p>
+
+      {/* Comuna Selector */}
+      <div className="w-full max-w-sm mb-6 space-y-4">
+        <Select value={selected} onValueChange={setSelected}>
+          <SelectTrigger className="h-14 text-lg bg-background/50 border-primary/20 focus:ring-primary/50 transition-all">
+            <div className="flex items-center gap-3">
+              <Navigation className="w-5 h-5 text-muted-foreground" />
+              <SelectValue placeholder="Selecciona tu comuna" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {COMUNAS_LIST.map((comuna) => (
+              <SelectItem key={comuna.value} value={comuna.value}>
+                {comuna.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          onClick={handleNext}
+          disabled={!selected}
+          size="lg"
+          className="w-full h-14 text-lg font-semibold shadow-lg shadow-primary/20"
+        >
+          Analizar Ubicación
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
+        <Sun className="w-3 h-3" />
+        <span>Datos basados en Global Solar Atlas</span>
+      </div>
     </motion.div>
   );
 }
