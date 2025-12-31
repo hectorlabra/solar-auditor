@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   },
 };
 
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -32,8 +35,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+      <body
+        className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}
+      >
+        <Header />
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   );
